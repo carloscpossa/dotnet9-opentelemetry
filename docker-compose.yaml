@@ -1,0 +1,32 @@
+services:
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2019-latest
+    environment:
+      SA_PASSWORD: ${SENHA_SQL_SERVER}
+      ACCEPT_EULA: "Y"
+      MSSQL_PID: "Developer"
+    ports:
+      - "1433:1433"
+
+  mssqltools:
+    image: mcr.microsoft.com/mssql-tools
+    depends_on:
+      - sqlserver
+    volumes:
+      - ./banco-dados/criar-banco-dados.sql:/tmp/criar-banco-dados.sql
+      - ./banco-dados/inserir-cidades.sql:/tmp/inserir-cidades.sql
+      - ./banco-dados/inicializar-banco.sh:/tmp/inicializar-banco.sh
+    command: /bin/bash ./tmp/inicializar-banco.sh
+
+  cidadesapi:
+    build:
+      context: ./CidadesApi
+      dockerfile: ./CidadesApi/Dockerfile
+    depends_on:
+      mssqltools:
+        condition: service_completed_successfully
+    ports:
+      - "8080:8080"      
+    environment:
+      - ConnectionStrings__BancoCidades=${CONNECTION_STRING_BANCO_CIDADES}
+    
