@@ -1,0 +1,25 @@
+global:
+  scrape_interval: 15s # Intervalo padrão para scraping de métricas
+  evaluation_interval: 15s # Intervalo padrão para avaliar as regras
+
+# Regras para alertas (opcional, você pode adicionar mais tarde)
+rule_files:
+  # - "alert_rules.yml"
+
+scrape_configs:
+  # Configuração para o próprio Prometheus (métricas do próprio prometheus)
+  - job_name: "prometheus"
+    static_configs:
+      - targets: ["localhost:9090"]
+
+  # Exemplo: Configuração para um Node Exporter (o node exporter expõe uma variedade de informações do hardware e do kernel)
+  - job_name: "node_exporter"
+    static_configs:
+      - targets: ["node-exporter:9100"]
+
+  # (métricas da API de Cidades instrumentada com OpenTelemetry sem collector)
+  - job_name: "cidadesapi" 
+    static_configs:
+      - targets: ["cidadesapi:8080"]
+
+  # Adicione aqui configurações para outros serviços
