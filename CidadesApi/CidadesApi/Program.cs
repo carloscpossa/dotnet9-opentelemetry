@@ -27,11 +27,32 @@ otel.ConfigureResource(resource => resource
 otel.WithMetrics(metrics => metrics
     // Metrics provider from OpenTelemetry
     .AddAspNetCoreInstrumentation()
+    .AddRuntimeInstrumentation()
+    .AddProcessInstrumentation()
     .AddMeter(consultasPorEstadosMetrica.Name)
     // Metrics provides by ASP.NET Core in .NET
     .AddMeter("Microsoft.AspNetCore.Hosting")
     .AddMeter("Microsoft.AspNetCore.Server.Kestrel")
     .AddPrometheusExporter());
+
+otel.WithTracing((tracing) =>
+{
+    tracing.AddAspNetCoreInstrumentation();
+    tracing.AddHttpClientInstrumentation();
+    tracing.AddSqlClientInstrumentation();
+    
+    if (!string.IsNullOrWhiteSpace(tracingOtlpEndpoint))
+    {
+        tracing.AddOtlpExporter(otlpOptions =>
+        {
+            otlpOptions.Endpoint = new Uri(tracingOtlpEndpoint);
+        });
+    }
+    else
+    {
+        tracing.AddConsoleExporter();
+    }
+});
 
 var app = builder.Build();
 

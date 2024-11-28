@@ -1,6 +1,6 @@
 volumes:
   prometheus_data: {}
-  grafana-storage: {}
+  grafana_storage: {}
 
 services:
   sqlserver:
@@ -61,7 +61,9 @@ services:
     environment:
       - GF_SECURITY_ADMIN_PASSWORD=admin
     ports:
-      - '3000:3000'    
+      - '3000:3000'
+    volumes:
+      - 'grafana_storage:/var/lib/grafana'
 
   cidadesapi:
     build:
