@@ -1,13 +1,17 @@
 using System.Diagnostics.Metrics;
-using OpenTelemetry.Logs;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 
 using CidadesApi.Repositorios;
 using Scalar.AspNetCore;
+using OpenTelemetry.Logs;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Logging.ClearProviders();
+builder.Logging.AddConsole();
+
 
 builder.Services.AddScoped<ICidadeRepositorio, CidadeRepositorio>();
 
@@ -24,29 +28,49 @@ otel.ConfigureResource(resource => resource
     .AddService(serviceName: builder.Environment.ApplicationName));
 
 // Add Metrics for ASP.NET Core and our custom metrics and export to Prometheus
-otel.WithMetrics(metrics => metrics
-    // Metrics provider from OpenTelemetry
-    .AddAspNetCoreInstrumentation()
-    .AddRuntimeInstrumentation()
-    .AddProcessInstrumentation()
-    .AddMeter(consultasPorEstadosMetrica.Name)
-    // Metrics provides by ASP.NET Core in .NET
-    .AddMeter("Microsoft.AspNetCore.Hosting")
-    .AddMeter("Microsoft.AspNetCore.Server.Kestrel")
-    .AddPrometheusExporter());
-
-otel.WithTracing((tracing) =>
+otel.WithMetrics(metrics =>
 {
-    tracing.AddAspNetCoreInstrumentation();
-    tracing.AddHttpClientInstrumentation();
-    tracing.AddSqlClientInstrumentation();
+    metrics.SetResourceBuilder(ResourceBuilder.CreateDefault().AddService("CidadesApi"))
+        // Metrics provider from OpenTelemetry
+        .AddAspNetCoreInstrumentation()
+        .AddHttpClientInstrumentation()
+        .AddRuntimeInstrumentation()
+        .AddProcessInstrumentation()
+        .AddMeter(consultasPorEstadosMetrica.Name)
+        // Metrics provides by ASP.NET Core in .NET
+        .AddMeter("Microsoft.AspNetCore.Hosting")
+        .AddMeter("Microsoft.AspNetCore.Server.Kestrel");
+
+    if (!string.IsNullOrEmpty(tracingOtlpEndpoint))
+    {
+        metrics.AddOtlpExporter(otlpOptions =>
+        {
+            otlpOptions.Protocol = OpenTelemetry.Exporter.OtlpExportProtocol.Grpc;
+            otlpOptions.Endpoint = new Uri(tracingOtlpEndpoint);
+        });    
+    }
+    else
+    {
+        metrics.AddConsoleExporter();
+    }
     
-    if (!string.IsNullOrWhiteSpace(tracingOtlpEndpoint))
+});
+
+otel.WithTracing(tracing =>
+{
+    tracing
+        .SetResourceBuilder(ResourceBuilder.CreateDefault().AddService("CidadesApi"))
+        .AddAspNetCoreInstrumentation()        
+        .AddSqlClientInstrumentation()
+        .AddHttpClientInstrumentation();
+    
+    if (!string.IsNullOrEmpty(tracingOtlpEndpoint))
     {
         tracing.AddOtlpExporter(otlpOptions =>
         {
+            otlpOptions.Protocol = OpenTelemetry.Exporter.OtlpExportProtocol.Grpc;
             otlpOptions.Endpoint = new Uri(tracingOtlpEndpoint);
-        });
+        });    
     }
     else
     {
@@ -54,9 +78,22 @@ otel.WithTracing((tracing) =>
     }
 });
 
-var app = builder.Build();
+builder.Logging.AddOpenTelemetry(options =>
+{
+    options.IncludeScopes = true;
+    options.AddConsoleExporter();
 
-app.MapPrometheusScrapingEndpoint();
+    if (!string.IsNullOrEmpty(tracingOtlpEndpoint))
+    {
+        options.AddOtlpExporter(otlpOptions =>
+        {
+            otlpOptions.Endpoint = new Uri(tracingOtlpEndpoint);
+        });
+    }
+    
+});
+
+var app = builder.Build();
 
 app.MapScalarApiReference();
 app.MapOpenApi();

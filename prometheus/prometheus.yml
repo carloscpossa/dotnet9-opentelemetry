@@ -17,9 +17,14 @@ scrape_configs:
     static_configs:
       - targets: ["node-exporter:9100"]
 
-  # (métricas da API de Cidades instrumentada com OpenTelemetry sem collector)
-  - job_name: "cidadesapi" 
+  # Métricas sendo recebidas do otel-collector
+  - job_name: "otel-collector" 
     static_configs:
-      - targets: ["cidadesapi:8080"]
+      - targets: ["otel-collector:8889"]      
+
+  # (métricas da API de Cidades instrumentada com OpenTelemetry sem collector)
+  # - job_name: "cidadesapi" 
+  #   static_configs:
+  #     - targets: ["cidadesapi:8080"]
 
   # Adicione aqui configurações para outros serviços
