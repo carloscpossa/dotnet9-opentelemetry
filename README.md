@@ -27,13 +27,10 @@ Características do projeto:
 ![image](https://github.com/user-attachments/assets/46bfc476-ca9f-4146-aee3-1ae6a166ec8a)
 ![image](https://github.com/user-attachments/assets/6e13d67a-b567-4e3a-9fdd-cb980dff8df7)
 
-
 #### Referências
-[Blog do Tiago Tartari](https://tiagotartari.net/observabilidade-em-aplicacoes-dotnet-com-opentelemetry.html)
-[Docs do OpenTelemetry](https://opentelemetry.io/docs/languages/dotnet/getting-started/)
-[Docs Microsoft](https://learn.microsoft.com/en-us/dotnet/core/diagnostics/observability-with-otel)
-[Docs Grafana](https://grafana.com/docs/grafana/latest/)
-
-
-
-
+* [Blog do Tiago Tartari](https://tiagotartari.net/observabilidade-em-aplicacoes-dotnet-com-opentelemetry.html)
+* [Docs do OpenTelemetry](https://opentelemetry.io/docs/languages/dotnet/getting-started/)
+* [Docs Microsoft](https://learn.microsoft.com/en-us/dotnet/core/diagnostics/observability-with-otel)
+* [Docs Prometheus](https://prometheus.io/docs/introduction/overview/)
+* [Docs Grafana](https://grafana.com/docs/grafana/latest/)
+* [Docs Jeager](https://www.jaegertracing.io/docs/2.6/getting-started/)
